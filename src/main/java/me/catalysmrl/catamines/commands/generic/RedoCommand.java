@@ -15,7 +15,7 @@ import java.util.List;
 public class RedoCommand extends AbstractCommand {
 
     public RedoCommand() {
-        super("redo", "catamines.command.redo", Predicates.any(), false);
+        super("redo", "catamines.redo", Predicates.any(), false);
     }
 
     @Override

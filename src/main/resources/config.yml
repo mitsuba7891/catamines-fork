@@ -4,5 +4,13 @@ prefix: "&6[&bCata&aMines&6]"
 # Should the plugin update you about newer versions?
 announceUpdate: true
 
-# Current supported languages: EN, CUSTOM, ES, CN
+# EN or ES fixes the server language; AUTO follows each player's locale.
+# Custom files: lang/messages_<language[_COUNTRY]>.yml (never overwritten).
+# Missing keys fall back to the language and then bundled English.
 language: EN
+
+regeneration:
+  # Shared queue budget. Neighbor physics and entity/biome pasting are disabled.
+  blocks-per-tick: 2000
+  # Oversized or out-of-height regions are refused rather than expanded.
+  maximum-mine-blocks: 10000000

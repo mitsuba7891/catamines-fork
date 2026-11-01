@@ -41,7 +41,7 @@ public class CataMineComposition
     }
 
     public boolean canReset() {
-        return !blocks.isEmpty();
+        return blocks.stream().anyMatch(block -> Double.isFinite(block.getChance()) && block.getChance() > 0);
     }
 
     public void addBlock(CataMineBlock block) {
@@ -83,6 +83,7 @@ public class CataMineComposition
     }
 
     public void setChance(double chance) {
+        if (!Double.isFinite(chance) || chance < 0) throw new IllegalArgumentException("Invalid composition weight");
         this.chance = chance;
     }
 
@@ -100,6 +101,7 @@ public class CataMineComposition
     }
 
     public RandomPattern getRandomPattern() {
+        updateRandomPattern();
         return randomPattern;
     }
 
@@ -204,7 +206,7 @@ public class CataMineComposition
             CataMineComposition clone = (CataMineComposition) super.clone();
             clone.flags = this.flags.clone();
             clone.rewards = new ArrayList<>(this.rewards);
-            clone.blocks = new ArrayList<>(this.blocks); // shallow copy of list
+            clone.blocks = new ArrayList<>(this.blocks.stream().map(CataMineBlock::clone).toList());
             clone.randomPattern = new RandomPattern();
             // Rebuild pattern from cloned blocks
             clone.blocks.forEach(b -> {

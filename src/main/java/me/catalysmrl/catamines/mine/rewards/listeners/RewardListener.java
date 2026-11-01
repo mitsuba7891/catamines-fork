@@ -24,12 +24,13 @@ public class RewardListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Optional<CataMine> mineOpt = plugin.getMineManager().getMineAtLocation(event.getBlock().getLocation());
         if (!mineOpt.isPresent()) return;
 
         CataMine mine = mineOpt.get();
+        if (mine.getController().isResetting() || event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE) return;
         Optional<CataMineRegion> regionOpt = plugin.getMineManager().getRegionAtLocation(mine, event.getBlock().getLocation());
         if (!regionOpt.isPresent()) return;
 
@@ -42,9 +43,8 @@ public class RewardListener implements Listener {
         // Find matching block type
         CataMineBlock matchedBlock = null;
         try {
-            BaseBlock baseBlockBroken = BaseBlockParser.parse(event.getBlock().getType().name());
             for (CataMineBlock mb : composition.getBlocks()) {
-                if (mb.getBaseBlock() != null && mb.getBaseBlock().equals(baseBlockBroken)) {
+                if (mb.matches(event.getBlock())) {
                     matchedBlock = mb;
                     break;
                 }

@@ -22,6 +22,11 @@ public class AdvancedCataMine extends AbstractCataMine {
         section.set("plugin-version", plugin.getPluginMeta().getVersion());
         section.set("name", name);
         section.set("display-name", displayName);
+        section.set("current-region", regionManager.getCurrent().map(CataMineRegion::getName).orElse(null));
+        if (!rewards.isEmpty()) {
+            ConfigurationSection entries = section.createSection("rewards");
+            rewards.forEach(reward -> reward.serialize(entries.createSection(reward.getId())));
+        }
         flags.serialize(section.createSection("flags"));
         controller.serialize(section.createSection("controller"));
         ConfigurationSection regionsSection = section.createSection("regions");
@@ -69,6 +74,12 @@ public class AdvancedCataMine extends AbstractCataMine {
             }
         }
 
+        cataMine.regionManager.get(section.getString("current-region", "")).ifPresent(cataMine.regionManager::setCurrent);
+        ConfigurationSection rewardsSection = section.getConfigurationSection("rewards");
+        if (rewardsSection != null) {
+            for (String id : rewardsSection.getKeys(false)) cataMine.addReward(me.catalysmrl.catamines.api.rewards.Reward.deserialize(
+                    id, rewardsSection.getConfigurationSection(id)));
+        }
         return cataMine;
     }
 

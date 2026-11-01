@@ -4,12 +4,15 @@ plugins {
 }
 
 group = "me.catalysmrl"
-version = "3.0.0"
-description = "Mines management plugin"
+version = "3.1.0"
+description = "CataMines Fork - bounded regenerating mines for Paper 26.2 and 26.3"
+
+val paperApiVersion = providers.gradleProperty("paperApiVersion").getOrElse("26.3.build.206-stable")
+val mockBukkit = if (paperApiVersion.startsWith("26.2.")) "mockbukkit-v26.2:4.117.0" else "mockbukkit-v26.3:4.118.0"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -21,16 +24,37 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
-
-    implementation(platform("com.intellectualsites.bom:bom-newest:1.55")) // Ref: https://github.com/IntellectualSites/bom
-    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
-    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
-    implementation("net.kyori:adventure-nbt:4.17.0")
-    implementation("net.kyori:adventure-text-serializer-gson:4.17.0")
-
+    compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
+    // Compile against standard WorldEdit, not FAWE-only methods. Either provider
+    // can implement these operations at runtime, but must support the server version.
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.6")
     implementation("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("me.clip:placeholderapi:2.11.6")
+
+    testImplementation(platform("org.junit:junit-bom:6.1.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation("org.mockbukkit.mockbukkit:$mockBukkit")
+    testImplementation("io.papermc.paper:paper-api:$paperApiVersion")
+    testImplementation("com.sk89q.worldedit:worldedit-bukkit:7.4.6")
+}
+
+configurations.configureEach {
+    if (name.endsWith("Classpath", ignoreCase = true)) {
+        resolutionStrategy.force("io.papermc.paper:paper-api:$paperApiVersion")
+    }
+}
+
+val smoke = sourceSets.create("smoke") {
+    compileClasspath += sourceSets.main.get().output + configurations.compileClasspath.get()
+    runtimeClasspath += output + compileClasspath
+}
+
+tasks.register<Jar>("smokeJar") {
+    description = "Builds the isolated-server regression plugin (never install on production)."
+    archiveBaseName.set("catamines-smoke-tests")
+    from(smoke.output)
 }
 
 tasks {
@@ -41,7 +65,7 @@ tasks {
             expand(
                 "pluginName" to "CataMines",
                 "version" to project.version,
-                "description" to project.description,
+                "description" to (project.description ?: "CataMines Fork"),
                 "main" to "me.catalysmrl.catamines.CataMines",
             )
         }
@@ -49,13 +73,20 @@ tasks {
 
     compileJava {
         options.encoding = "UTF-8"
+        options.release.set(25)
         exclude("**/legacycatamines/**")
+    }
+
+    test {
+        useJUnitPlatform()
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
     }
 
     shadowJar {
         dependsOn(processResources)
 
-        archiveBaseName.set("catamines")
+        archiveBaseName.set("catamines-fork")
+        archiveClassifier.set("")
         archiveVersion.set(project.version.toString())
 
         relocate("org.bstats", "me.catalysmrl.catamines.shaded.metrics")

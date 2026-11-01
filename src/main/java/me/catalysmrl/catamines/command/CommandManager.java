@@ -57,6 +57,7 @@ public class CommandManager implements TabExecutor {
                 .put("stoptasks", new StopTasksCommand())
                 .put("sync", new SyncCommand())
                 .put("teleport", new TeleportCommand())
+                .put("teleportplayers", new TeleportPlayersCommand())
                 .put("warn", new WarnCommand())
                 .put("setteleport", new SetTeleportCommand())
                 .put("setresetteleport", new SetResetTeleportCommand())
@@ -103,8 +104,9 @@ public class CommandManager implements TabExecutor {
             cataCommand.execute(plugin, sender, ctx);
         } catch (CommandException e) {
             e.handle(sender, cataCommand);
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (Exception | LinkageError e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Command failed: " + subCmd, e);
+            Message.of("catamines.error").send(sender);
         }
 
         return true;
@@ -140,7 +142,7 @@ public class CommandManager implements TabExecutor {
             return commandMap.get(commandName);
 
         return commandMap.values().stream()
-                .filter(command -> command.getName().equals(commandName))
+                .filter(command -> command.getName().equals(commandName) || command.getAliases().contains(commandName))
                 .findFirst().orElse(null);
     }
 

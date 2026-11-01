@@ -21,16 +21,19 @@ public class UnsetCommand extends AbstractMineCommand {
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx, MineTarget target)
             throws CommandException {
         assertArgLength(ctx);
-        String flagName = ctx.next();
-        Flag<?> flag = Flag.getByName(flagName);
-
-        if (flag == null) {
-            Messages.sendPrefixed(sender, "&cUnknown flag: " + flagName);
-            return;
+        String input = ctx.next();
+        target.resolveDefaults();
+        var composition = target.getComposition();
+        if (composition == null) { Message.INVALID_TARGET.send(sender, target.toPath()); return; }
+        try {
+            var parsed = me.catalysmrl.catamines.utils.worldedit.BaseBlockParser.parse(input);
+            var matched = composition.getBlocks().stream().filter(block -> block.getBaseBlock().equals(parsed)).findFirst();
+            if (matched.isEmpty()) { Message.SET_INVALID_BLOCKSTATE.send(sender); return; }
+            composition.removeBlock(matched.get());
+        } catch (com.sk89q.worldedit.extension.input.InputParseException | IllegalArgumentException e) {
+            Message.SET_INVALID_BLOCKSTATE.send(sender); return;
         }
-
-        ((me.catalysmrl.catamines.api.mine.PropertyHolder) target.getTarget()).setFlag(flag, null);
-        Messages.sendPrefixed(sender, "&aUnset flag " + flag.getName() + " for target.");
+        Message.UNSET_SUCCESS.send(sender, input, target.toPath());
         requireSave();
     }
 

@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 public class SetTeleportCommand extends AbstractMineCommand {
 
     public SetTeleportCommand() {
-        super("setteleport", "catamines.setteleport", Predicates.equals(1), true);
+        super("setteleport", "catamines.setteleport", Predicates.equals(0), true);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class SetTeleportCommand extends AbstractMineCommand {
             targetName = ((Identifiable) holder).getName();
         }
 
-        Messages.sendPrefixed(sender, "&aTeleport location set for " + targetName);
+        Message.SETTELEPORT_SUCCESS.send(sender, targetName);
         requireSave();
     }
 

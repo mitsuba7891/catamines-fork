@@ -45,10 +45,8 @@ public class CataMinePlaceHolders extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String identifier) {
-        int mineIndex = 1;
-        String delimiter = "_";
-        String regex = "(?<!\\\\)(?:" + Pattern.quote(delimiter) + "|\\\\(?!\\\\))";
-        String[] args = identifier.split(regex);
+        // Split once: underscores are valid in mine IDs.
+        String[] args = identifier.split("_", 2);
 
         if (args.length <= 1) {
             return switch (args[0]) {
@@ -57,29 +55,23 @@ public class CataMinePlaceHolders extends PlaceholderExpansion {
             };
         }
 
-        Optional<CataMine> mineOptional = plugin.getMineManager().getMine(args[mineIndex]);
+        Optional<CataMine> mineOptional = plugin.getMineManager().getMine(args[1]);
         if (mineOptional.isEmpty()) {
-            return Message.MINE_NOT_EXISTS.getKey();
+            return null;
         }
 
         CataMine mine = mineOptional.get();
 
-        // TODO: Placholders via new CataMine interface
-        /*
-         * return switch (args[0].toLowerCase()) {
-         * case "countdown", "time" -> Utils.secondsToTimeFormat(mine.getCountdown());
-         * case "remainingseconds" -> String.valueOf(mine.getCountdown());
-         * case "totalblocks" -> String.valueOf(mine.getTotalBlocks());
-         * case "remainingblocks" -> String.valueOf(mine.getBlockCount());
-         * case "minedblocks" -> String.valueOf(mine.getMinedBlocks());
-         * case "remainingblockspercentage", "remainingblocksper" ->
-         * String.valueOf(mine.getRemainingBlocksPer());
-         * case "resetpercentage" -> String.valueOf(mine.getResetPercentage());
-         * case "timestring" -> mine.getFormattedTimeString();
-         * default -> null;
-         * };
-         */
-
-        return "Not yet implemented";
+        var controller = mine.getController();
+        return switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
+            case "countdown", "time", "timestring" -> me.catalysmrl.catamines.utils.helper.CountdownFormatter.clock(controller.getCountdown());
+            case "remainingseconds" -> Integer.toString(controller.getCountdown());
+            case "totalblocks" -> Long.toString(controller.getTotalBlocks());
+            case "remainingblocks" -> Long.toString(controller.getBlockCount());
+            case "minedblocks" -> Long.toString(Math.max(0, controller.getTotalBlocks() - controller.getBlockCount()));
+            case "remainingblockspercentage", "remainingblocksper" -> String.format(java.util.Locale.ROOT, "%.2f", controller.getRemainingPercentage());
+            case "resetpercentage" -> Double.toString(controller.getResetPercentage());
+            default -> null;
+        };
     }
 }

@@ -26,6 +26,10 @@ public class RenameCommand extends AbstractMineCommand {
         CataMine mine = target.getMine();
 
         String oldMineName = mine.getName();
+        if (oldMineName.equals(ctx.peek())) return;
+        if (plugin.getMineManager().containsMine(ctx.peek())) { Message.CREATE_MINE_EXISTS.send(sender); return; }
+        try { me.catalysmrl.catamines.mine.abstraction.AbstractCataMine.validateName(ctx.peek()); }
+        catch (IllegalArgumentException e) { Message.CREATE_INVALID_NAME.send(sender); return; }
         mine.setName(ctx.peek());
         try {
             plugin.getMineManager().saveMine(mine);
@@ -37,7 +41,7 @@ public class RenameCommand extends AbstractMineCommand {
 
         Path mineFileToDelete = plugin.getMineManager().getMinesPath().resolve(oldMineName + ".yml");
         try {
-            Files.delete(mineFileToDelete);
+            Files.deleteIfExists(mineFileToDelete);
         } catch (IOException e) {
             Message.MINE_DELETE_EXCEPTION.send(sender, mine.getName());
             return;

@@ -16,16 +16,17 @@ import java.util.List;
 public class TeleportPlayersCommand extends AbstractMineCommand {
 
     public TeleportPlayersCommand() {
-        super("teleportplayers", "catamines.teleportplayers", Predicates.equals(2), false);
+        super("teleportplayers", "catamines.teleportplayers", Predicates.equals(1), false);
     }
 
     @Override
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx,
             me.catalysmrl.catamines.command.utils.MineTarget target)
             throws CommandException {
+        assertArgLength(ctx);
         String valueStr = ctx.next();
         if (!valueStr.equalsIgnoreCase("true") && !valueStr.equalsIgnoreCase("false")) {
-            Messages.sendPrefixed(sender, "Invalid boolean: " + valueStr);
+            Message.of("catamines.command.mine.resetmode.invalid").send(sender);
             return;
         }
 
@@ -39,7 +40,7 @@ public class TeleportPlayersCommand extends AbstractMineCommand {
             targetName = ((me.catalysmrl.catamines.mine.components.manager.choice.Identifiable) holder).getName();
         }
 
-        Messages.sendPrefixed(sender, "Teleport players set to " + value + " for " + targetName);
+        Message.TELEPORTPLAYERS_SUCCESS.send(sender, targetName);
         requireSave();
     }
 

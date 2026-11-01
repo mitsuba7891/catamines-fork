@@ -29,10 +29,11 @@ public abstract class AbstractCataMine implements CataMine, RewardHolder, Clonea
 
     public AbstractCataMine(CataMines plugin, String name) {
         this.plugin = plugin;
+        validateName(name);
         this.name = name;
         this.displayName = "default";
         controller = new CataMineController(this);
-        regionManager = new ChoiceManager<>();
+        regionManager = new ChoiceManager<>(region -> region.setMine(this));
         flags = new MineFlags();
         rewards = new ArrayList<>();
     }
@@ -47,7 +48,6 @@ public abstract class AbstractCataMine implements CataMine, RewardHolder, Clonea
     @Override
     public void reset(CataMines plugin) {
         regionManager.getUpcoming().ifPresent(region -> plugin.getMineManager().resetRegion(region));
-        regionManager.next();
     }
 
     @Override
@@ -57,9 +57,13 @@ public abstract class AbstractCataMine implements CataMine, RewardHolder, Clonea
 
     @Override
     public void setName(String name) {
-        if ("*".equals(name))
-            throw new IllegalArgumentException();
+        validateName(name);
         this.name = name;
+    }
+
+    public static void validateName(String name) {
+        if (name == null || !name.matches("[A-Za-z0-9_-]{1,64}"))
+            throw new IllegalArgumentException("Mine names must use 1-64 letters, digits, underscores or hyphens");
     }
 
     @Override
@@ -149,8 +153,9 @@ public abstract class AbstractCataMine implements CataMine, RewardHolder, Clonea
             clone.controller.setResetPercentage(this.controller.getResetPercentage());
             clone.controller.setCountdown(this.controller.getCountdown());
             clone.controller.setBlockCount(this.controller.getBlockCount());
+            clone.controller.setTotalBlocks(this.controller.getTotalBlocks());
 
-            clone.regionManager = new ChoiceManager<>();
+            clone.regionManager = new ChoiceManager<>(region -> region.setMine(clone));
             for (CataMineRegion region : this.regionManager.getChoices()) {
                 CataMineRegion clonedRegion = region.clone();
                 clonedRegion.setMine(clone);

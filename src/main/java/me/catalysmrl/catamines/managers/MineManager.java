@@ -8,6 +8,10 @@ import me.catalysmrl.catamines.managers.blockmanagers.BukkitBlockApplicationMana
 import me.catalysmrl.catamines.managers.blockmanagers.FastAsyncBlockApplicationManager;
 import me.catalysmrl.catamines.mine.components.region.CataMineRegion;
 import me.catalysmrl.catamines.mine.mines.AdvancedCataMine;
+import me.catalysmrl.catamines.mine.components.composition.CataMineBlock;
+import me.catalysmrl.catamines.mine.components.composition.CataMineComposition;
+import me.catalysmrl.catamines.mine.components.composition.drop.DropTable;
+import me.catalysmrl.catamines.api.events.CataMineBlockBreakEvent;
 import me.catalysmrl.catamines.utils.helper.CompatibilityProvider;
 import me.catalysmrl.catamines.utils.message.Message;
 import org.bukkit.Bukkit;
@@ -40,6 +44,8 @@ public class MineManager {
     private BlockApplicator blockApplicator;
 
     private final List<CataMine> mines = new ArrayList<>();
+    private record PreparedBreak(CataMine mine, CataMineBlock block) {}
+    private final java.util.Map<BlockBreakEvent, PreparedBreak> pendingBreaks = new java.util.WeakHashMap<>();
 
     public MineManager(CataMines plugin) {
         this.plugin = plugin;
@@ -63,8 +69,9 @@ public class MineManager {
     }
 
     public void shutDown() {
-        blockApplicator.cancel();
-        minesTask.cancel();
+        if (blockApplicator != null) blockApplicator.cancel();
+        if (minesTask != null) minesTask.cancel();
+        pendingBreaks.clear();
 
         for (CataMine mine : mines) {
             try {
@@ -121,8 +128,12 @@ public class MineManager {
 
         this.minesTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
 
-            for (CataMine cataMine : mines) {
-                cataMine.tick();
+            for (CataMine cataMine : List.copyOf(mines)) {
+                try { cataMine.tick(); }
+                catch (Exception | LinkageError e) {
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Mine tick failed: " + cataMine.getName(), e);
+                    cataMine.getController().resetFailed();
+                }
             }
 
         }, 0L, 20L);
@@ -136,6 +147,10 @@ public class MineManager {
      */
     public void resetRegion(CataMineRegion region) {
         blockApplicator.queueForReset(region);
+    }
+
+    public void cancelReset(CataMine mine) {
+        if (blockApplicator != null) blockApplicator.cancelMine(mine);
     }
 
     /**
@@ -160,6 +175,7 @@ public class MineManager {
 
         try (Stream<Path> stream = Files.list(folder)) {
             cataMines = stream
+                    .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".yml"))
                     .map(this::deserializeCataMineFromYaml)
                     .flatMap(Optional::stream)
                     .collect(Collectors.toList());
@@ -180,9 +196,8 @@ public class MineManager {
         CataMine mine = null;
         try {
             mine = AdvancedCataMine.deserialize(plugin, section);
-        } catch (DeserializationException e) {
-            // ignore
-            e.printStackTrace();
+        } catch (DeserializationException | RuntimeException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Skipped invalid mine configuration: " + e.getMessage(), e);
         }
         return Optional.ofNullable(mine);
     }
@@ -194,16 +209,58 @@ public class MineManager {
      * @param folder the folder to load the mines from
      */
     public void loadMinesFromFolder(Path folder) {
+        mines.forEach(this::cancelReset);
         mines.clear();
-        mines.addAll(getMinesFromFolder(folder));
+        getMinesFromFolder(folder).forEach(mine -> {
+            if (!containsMine(mine)) registerMine(mine);
+            else plugin.getLogger().warning("Skipped duplicate mine: " + mine.getName());
+        });
     }
 
     public void callBlockBreak(BlockBreakEvent event) {
-        
+        if (event.isCancelled()) return;
+        if (isResettingAt(event.getBlock().getLocation())) { event.setCancelled(true); return; }
+        CataMine mine = getMineAtLocation(event.getBlock().getLocation()).orElse(null);
+        if (mine == null) return;
+        if (mine.getController().isResetting()) { event.setCancelled(true); return; }
+        CataMineRegion region = getRegionAtLocation(mine, event.getBlock().getLocation()).orElse(null);
+        if (region == null) return;
+        CataMineComposition composition = region.getCompositionManager().getCurrent().orElse(null);
+        CataMineBlock matched = composition == null ? null : composition.getBlocks().stream()
+                .filter(block -> block.matches(event.getBlock())).findFirst().orElse(null);
+        CataMineBlockBreakEvent apiEvent = new CataMineBlockBreakEvent(mine, region, composition, matched, event);
+        Bukkit.getPluginManager().callEvent(apiEvent);
+        if (apiEvent.isCancelled()) { event.setCancelled(true); return; }
+        if (matched != null && matched.hasCustomDrops()) event.setDropItems(false);
+        pendingBreaks.put(event, new PreparedBreak(mine, matched));
+    }
+
+    public void finishBlockBreak(BlockBreakEvent event) {
+        PreparedBreak prepared = pendingBreaks.remove(event);
+        if (prepared == null || event.isCancelled()) return;
+        prepared.mine.getController().blockBroken();
+        if (prepared.block == null || !prepared.block.hasCustomDrops()
+                || event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE) return;
+        // A failed custom roll produces nothing: never fall back to the original block.
+        org.bukkit.inventory.ItemStack hand = event.getPlayer().getInventory().getItemInMainHand();
+        int fortune = hand == null || hand.getType().isAir() ? 0
+                : hand.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.FORTUNE);
+        var drops = DropTable.roll(prepared.block, fortune, java.util.concurrent.ThreadLocalRandom.current());
+        var location = event.getBlock().getLocation().add(0.5, 0.5, 0.5);
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!event.isCancelled()) drops.forEach(item -> location.getWorld().dropItemNaturally(location, item));
+        });
     }
 
     public void callBlockPlace(BlockPlaceEvent event) {
+        if (!event.isCancelled() && event.getBlockReplacedState().getType().isAir()) {
+            getMineAtLocation(event.getBlock().getLocation()).ifPresent(mine -> mine.getController().blockPlaced());
+        }
+    }
 
+    public boolean isResettingAt(org.bukkit.Location location) {
+        return mines.stream().anyMatch(mine -> mine.getController().isResetting()
+                && mine.getRegionManager().getChoices().stream().anyMatch(region -> region.contains(location)));
     }
 
     /**
@@ -220,7 +277,7 @@ public class MineManager {
 
     public Optional<CataMine> getMineAtLocation(org.bukkit.Location location) {
         for (CataMine mine : mines) {
-            for (CataMineRegion region : mine.getRegionManager().getChoices()) {
+            for (CataMineRegion region : mine.getRegionManager().getCurrent().stream().toList()) {
                 if (region.contains(location)) {
                     return Optional.of(mine);
                 }
@@ -230,7 +287,7 @@ public class MineManager {
     }
     
     public Optional<CataMineRegion> getRegionAtLocation(CataMine mine, org.bukkit.Location location) {
-        for (CataMineRegion region : mine.getRegionManager().getChoices()) {
+        for (CataMineRegion region : mine.getRegionManager().getCurrent().stream().toList()) {
             if (region.contains(location)) return Optional.of(region);
         }
         return Optional.empty();
@@ -287,18 +344,27 @@ public class MineManager {
     }
 
     public void deleteMine(CataMine cataMine) throws IOException {
+        cancelReset(cataMine);
         mines.remove(cataMine);
 
         Files.deleteIfExists(plugin.getDataFolder().toPath().resolve("mines").resolve(cataMine.getName() + ".yml"));
     }
 
     public void saveMine(CataMine mine) throws IOException {
+        me.catalysmrl.catamines.mine.abstraction.AbstractCataMine.validateName(mine.getName());
         Path file = plugin.getDataFolder().toPath().resolve("mines").resolve(mine.getName() + ".yml");
         FileConfiguration fileCfg = new YamlConfiguration();
 
         mine.serialize(fileCfg);
 
-        fileCfg.save(file.toFile());
+        Path temporary = Files.createTempFile(minesPath, mine.getName() + "-", ".tmp");
+        try {
+            fileCfg.save(temporary.toFile());
+            try { Files.move(temporary, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE); }
+            catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                Files.move(temporary, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally { Files.deleteIfExists(temporary); }
     }
 
     public Path getMinesPath() {

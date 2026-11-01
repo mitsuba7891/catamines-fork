@@ -17,7 +17,7 @@ import java.util.Locale;
 public class TimerCommand extends AbstractMineCommand {
 
     public TimerCommand() {
-        super("timer", "catamines.timer", Predicates.inRange(1, 2), false);
+        super("timer", "catamines.setdelay", Predicates.inRange(1, 2), false);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class TimerCommand extends AbstractMineCommand {
         CataMine mine = target.getMine();
         assertArgLength(ctx);
 
-        int timeToSetInSeconds;
+        long timeToSetInSeconds;
         try {
             timeToSetInSeconds = Integer.parseInt(ctx.next());
         } catch (NumberFormatException e) {
@@ -55,7 +55,11 @@ public class TimerCommand extends AbstractMineCommand {
             }
         }
 
-        mine.getController().setResetDelay(timeToSetInSeconds);
+        if (timeToSetInSeconds < -1 || timeToSetInSeconds > Integer.MAX_VALUE) {
+            Message.TIMER_INVALID_FORMAT.send(sender);
+            return;
+        }
+        mine.getController().setResetDelay((int) timeToSetInSeconds);
         Message.TIMER_SUCCESS.send(sender);
 
         requireSave();

@@ -29,17 +29,17 @@ public class ResetPercentageCommand extends AbstractMineCommand {
         try {
             percentage = Double.parseDouble(percentageRaw);
         } catch (NumberFormatException e) {
-            Messages.sendPrefixed(sender, "Invalid number: " + percentageRaw);
+            Message.of("catamines.command.mine.resetpercentage.invalid").send(sender);
             return;
         }
 
-        if (percentage < 0 || percentage > 100) {
-            Messages.sendPrefixed(sender, "Invalid percentage: " + percentage);
+        if (!Double.isFinite(percentage) || percentage < 0 || percentage > 100) {
+            Message.of("catamines.command.mine.resetpercentage.invalid").send(sender);
             return;
         }
 
         mine.getController().setResetPercentage(percentage);
-        Messages.sendPrefixed(sender, "Reset percentage set to " + percentage + "% for mine " + mine.getName());
+        Message.RESETPERCENTAGE_SUCCESS.send(sender, percentage, mine.getName());
         requireSave();
     }
 

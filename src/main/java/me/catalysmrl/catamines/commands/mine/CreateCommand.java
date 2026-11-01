@@ -36,7 +36,7 @@ public class CreateCommand extends AbstractCommand {
         String[] parts = pathTarget.split(":", 3);
         String mineName = parts[0];
 
-        if ("*".equals(mineName)) {
+        if (!mineName.matches("[A-Za-z0-9_-]{1,64}")) {
             Message.CREATE_INVALID_NAME.send(sender);
             return;
         }
@@ -127,7 +127,12 @@ public class CreateCommand extends AbstractCommand {
         if (!ctx.hasNext()) {
             // No schematic provided, use selection
             if (regionSelector.isDefined()) {
-                region = new SelectionRegion(regionName, regionSelector);
+                try {
+                    region = new SelectionRegion(regionName, regionSelector);
+                } catch (IllegalArgumentException e) {
+                    Message.CREATE_INCOMPLETE_REGION.send(sender);
+                    return false;
+                }
             } else {
                 Message.CREATE_INCOMPLETE_REGION.send(sender);
                 return false;
@@ -136,9 +141,6 @@ public class CreateCommand extends AbstractCommand {
             // Schematic provided
             try {
                 region = new SchematicRegion(regionName, ctx.peek(), regionSelector);
-            } catch (IncompleteRegionException e) {
-                Message.CREATE_INCOMPLETE_REGION.send(sender);
-                return false;
             } catch (IllegalArgumentException e) {
                 Message.CREATE_INVALID_SCHEMATIC.send(sender, ctx.peek());
                 return false;

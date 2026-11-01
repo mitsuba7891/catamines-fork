@@ -14,11 +14,13 @@ public class BukkitBlockApplicationManager extends BlockApplicator {
 
     @Override
     public void start() {
+        if (bukkitTask != null) bukkitTask.cancel();
         bukkitTask = Bukkit.getScheduler().runTaskTimer(plugin, this::handleQueue, 0L, 1L);
     }
 
     @Override
     public void cancel() {
-        bukkitTask.cancel();
+        if (bukkitTask != null) bukkitTask.cancel();
+        clearQueue();
     }
 }

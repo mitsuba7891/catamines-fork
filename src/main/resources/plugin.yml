@@ -1,8 +1,9 @@
 name: ${pluginName}
 version: ${version}
 main: me.catalysmrl.catamines.CataMines
-api-version: 1.16
-authors: [ CatalysmRL (C4t4lysm) ]
+api-version: '26.2'
+authors: [ CatalysmRL (C4t4lysm), mitsuba7891 ]
+website: https://github.com/mitsuba7891/catamines-fork
 description: ${description}
 load: POSTWORLD
 depend: [ WorldEdit ]
@@ -15,6 +16,40 @@ commands:
     aliases: [ "cm" , "cmine", "cmines" ]
 
 permissions:
+  catamines.admin:
+    description: Administrative commands, including bulk operations and the GUI editor.
+    default: op
+    children:
+      catamines.help: true
+      catamines.create: true
+      catamines.delete: true
+      catamines.gui: true
+      catamines.list: true
+      catamines.info: true
+      catamines.set: true
+      catamines.unset: true
+      catamines.resetmode: true
+      catamines.setdelay: true
+      catamines.resetpercentage: true
+      catamines.reset: true
+      catamines.setteleport: true
+      catamines.setresetteleport: true
+      catamines.teleport: true
+      catamines.teleportplayers: true
+      catamines.start: true
+      catamines.stop: true
+      catamines.starttasks: true
+      catamines.stoptasks: true
+      catamines.reload: true
+      catamines.displayname: true
+      catamines.redefine: true
+      catamines.rename: true
+      catamines.debug: true
+      catamines.sync: true
+      catamines.warn: true
+      catamines.confirm: true
+      catamines.undo: true
+      catamines.redo: true
   catamines.*:
     description: Grants access to every command.
     default: op
@@ -39,6 +74,7 @@ permissions:
       catamines.starttasks: true
       catamines.stoptasks: true
       catamines.reload: true
+      catamines.admin: true
       catamines.minefficiency.bypass: true
   catamines.help:
     description: Lets you list all mine commands.

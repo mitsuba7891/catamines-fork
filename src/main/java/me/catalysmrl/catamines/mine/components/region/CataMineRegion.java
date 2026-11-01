@@ -24,6 +24,8 @@ public interface CataMineRegion
 
     void fill();
 
+    me.catalysmrl.catamines.utils.worldedit.BoundedReset prepareReset(long maximumBlocks);
+
     void redefineRegion(RegionSelector selector);
 
     RegionType getType();

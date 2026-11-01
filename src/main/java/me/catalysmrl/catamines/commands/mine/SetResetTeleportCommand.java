@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 public class SetResetTeleportCommand extends AbstractMineCommand {
 
     public SetResetTeleportCommand() {
-        super("setresetteleport", "catamines.setresetteleport", Predicates.equals(1), true);
+        super("setresetteleport", "catamines.setresetteleport", Predicates.equals(0), true);
     }
 
     @Override

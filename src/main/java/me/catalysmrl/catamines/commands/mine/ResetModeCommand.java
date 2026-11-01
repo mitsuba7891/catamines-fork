@@ -26,7 +26,7 @@ public class ResetModeCommand extends AbstractMineCommand {
         CataMineController.ResetMode resetMode;
 
         try {
-            resetMode = CataMineController.ResetMode.valueOf(ctx.peek());
+            resetMode = CataMineController.ResetMode.valueOf(ctx.peek().toUpperCase(java.util.Locale.ROOT).replace('-', '_'));
         } catch (IllegalArgumentException e) {
             Message.RESETMODE_INVALID.send(sender);
             return;
@@ -40,6 +40,12 @@ public class ResetModeCommand extends AbstractMineCommand {
     @Override
     public Message getDescription() {
         return Message.RESETMODE_DESCRIPTION;
+    }
+
+    @Override
+    public java.util.List<String> tabComplete(CataMines plugin, CommandSender sender, CommandContext ctx, MineTarget target) {
+        return java.util.Arrays.stream(CataMineController.ResetMode.values()).map(Enum::name)
+                .filter(mode -> mode.startsWith(ctx.peek() == null ? "" : ctx.peek().toUpperCase(java.util.Locale.ROOT))).toList();
     }
 
     @Override

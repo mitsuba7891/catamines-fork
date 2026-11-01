@@ -5,11 +5,14 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
+import com.sk89q.worldedit.function.pattern.AbstractPattern;
+import com.sk89q.worldedit.world.block.BaseBlock;
 import com.sk89q.worldedit.world.World;
 import me.catalysmrl.catamines.api.serialization.DeserializationException;
 import me.catalysmrl.catamines.mine.components.region.AbstractCataMineRegion;
 import me.catalysmrl.catamines.utils.worldedit.VectorParser;
 import me.catalysmrl.catamines.utils.worldedit.WorldEditUtils;
+import me.catalysmrl.catamines.utils.worldedit.BoundedReset;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -31,34 +34,47 @@ public class SchematicRegion extends AbstractCataMineRegion implements Cloneable
     }
 
     public void define(String schematicName, World world, BlockVector3 location) {
+        Clipboard loaded = WorldEditUtils.loadSchematic(schematicName);
+        cancelPendingReset();
         this.schematicName = schematicName;
         this.world = world;
         this.location = location;
-        this.clipboard = WorldEditUtils.loadSchematic(schematicName);
+        this.clipboard = loaded;
     }
 
     public void define(String schematicName, RegionSelector selector) {
-        define(schematicName, selector.getWorld(), selector.getPrimaryPosition());
+        try {
+            define(schematicName, selector.getWorld(), selector.getPrimaryPosition());
+        } catch (com.sk89q.worldedit.IncompleteRegionException e) {
+            throw new IllegalArgumentException("Incomplete schematic destination", e);
+        }
     }
 
     @Override
     public void redefineRegion(RegionSelector selector) {
-        this.world = selector.getWorld();
-        this.location = selector.getPrimaryPosition();
+        try {
+            BlockVector3 destination = selector.getPrimaryPosition();
+            cancelPendingReset();
+            this.world = selector.getWorld();
+            this.location = destination;
+        } catch (com.sk89q.worldedit.IncompleteRegionException e) {
+            throw new IllegalArgumentException("Incomplete schematic destination", e);
+        }
     }
 
     @Override
-    public void fill() {
-        WorldEditUtils.pasteSchematic(clipboard, world, location);
+    public BoundedReset prepareReset(long maximumBlocks) {
+        return WorldEditUtils.schematicReset(clipboard, world, location, maximumBlocks);
     }
 
     @Override
     public boolean contains(org.bukkit.Location loc) {
-        if (world == null || !world.getName().equals(loc.getWorld().getName())) return false;
+        if (loc == null || loc.getWorld() == null || world == null || !world.getName().equals(loc.getWorld().getName())) return false;
         if (clipboard == null || clipboard.getRegion() == null) return false;
         
         Region r = clipboard.getRegion();
-        return r.contains(BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+        BlockVector3 offset = location.subtract(clipboard.getOrigin());
+        return r.contains(BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()).subtract(offset));
     }
 
     @Override
@@ -111,6 +127,7 @@ public class SchematicRegion extends AbstractCataMineRegion implements Cloneable
 
         SchematicRegion schematicRegion = new SchematicRegion(name, schematicName, worldEditWorld, location);
         schematicRegion.setChance(chance);
+        schematicRegion.deserializeCommon(section);
 
         return schematicRegion;
     }

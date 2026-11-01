@@ -49,6 +49,7 @@ public abstract class AbstractMineCommand extends AbstractCommand {
 
         // Use Message.
         if (target.isGlobal()) {
+            if (!sender.hasPermission("catamines.admin")) { Message.NO_PERMISSION.send(sender); return; }
             ConfirmationManager.request(sender,
                     estimateAffected(target, plugin),
                     () -> processCommand(plugin, sender, ctx, target, rawTarget));
@@ -145,9 +146,10 @@ public abstract class AbstractMineCommand extends AbstractCommand {
             MineTarget target = new MineTarget(mine, region, composition);
             execute(plugin, sender, ctx, target);
         } catch (CommandException e) {
-            // Ignore
+            e.handle(sender, this);
         } catch (Exception e) {
-            // Ignore
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Command " + getName() + " failed for " + mine.getName(), e);
+            Message.of("catamines.error").send(sender);
         }
     }
 
@@ -223,7 +225,7 @@ public abstract class AbstractMineCommand extends AbstractCommand {
         List<String> authorizedMines = plugin.getMineManager().getMineList().stream()
                 .filter(mineName -> {
                     String perm = getPermission().orElse(null);
-                    return perm == null || sender.hasPermission(perm + "." + mineName);
+                    return perm == null || sender.hasPermission(perm) || sender.hasPermission(perm + "." + mineName);
                 })
                 .toList();
 

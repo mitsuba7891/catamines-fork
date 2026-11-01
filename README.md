@@ -1,6 +1,18 @@
-# CataMines
+<div align="center">
 
-A mines management plugin
+# CataMines Fork
+
+**Open-source regenerating mines for Paper 26.2–26.3.**
+
+[![Paper](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/paper_vector.svg)](https://github.com/mitsuba7891/catamines-fork#compatibility)
+[![GitHub](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/github_vector.svg)](https://github.com/mitsuba7891/catamines-fork)
+[![Java 25](https://img.shields.io/badge/Java-25-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/projects/jdk/25/)
+
+[Source](https://github.com/mitsuba7891/catamines-fork) · [Upstream](https://github.com/CatalysmRL/CataMines) · [Issues](https://github.com/mitsuba7891/catamines-fork/issues)
+
+</div>
+
+A maintained fork of [CataMines by CatalysmRL](https://github.com/CatalysmRL/CataMines), preserving its history and GPL-3.0 license. This fork is being hardened for bounded regeneration, custom drops, translations and inventory menus.
 
 - Create mines
 - Manage via GUI
@@ -17,8 +29,9 @@ A mines management plugin
 
 ## Compatibility
 
-- Java 8 to 21
-- Minecraft 1.13.2 - 1.20.1
+- Java 25.
+- Paper 26.2 and 26.3 are the target server versions; validation results are recorded with the fork changes. Older servers and Folia are not advertised as supported.
+- WorldEdit 7.4.6+ or FastAsyncWorldEdit 2.16.1+ appropriate for the server version. Install one provider, not both.
 
 ## 🔗 Links
 

@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CataMineBlock implements Choice, SectionSerializable, RewardHolder {
+public class CataMineBlock implements Choice, SectionSerializable, RewardHolder, Cloneable {
 
     private String blockString;
     private BaseBlock baseBlock;
@@ -28,7 +28,7 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
     private List<Reward> rewards = new ArrayList<>();
 
     public CataMineBlock(String blockString, double chance) throws InputParseException {
-        this(blockString, chance, DropType.CUSTOM);
+        this(blockString, chance, DropType.ALL);
     }
 
     public CataMineBlock(String blockString, double chance, DropType dropType) throws InputParseException {
@@ -36,7 +36,7 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
     }
 
     public CataMineBlock(String blockString, double chance, DropType dropType, List<CataMineItem> items) throws InputParseException {
-        if (chance < 0 || chance > 100) {
+        if (!Double.isFinite(chance) || chance < 0 || chance > 100) {
             throw new IllegalArgumentException(Message.SET_INVALID_CHANCE.getKey());
         }
 
@@ -44,7 +44,7 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
         this.baseBlock = BaseBlockParser.parse(blockString);
         this.chance = Math.round(chance * 100) / 100d;
         this.dropType = dropType;
-        this.items = items;
+        this.items = new ArrayList<>(items);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
 
         double chance = section.getDouble("chance", 0d);
 
-        DropType dropType = DropType.valueOf(section.getString("drop-type", "CUSTOM"));
+        DropType dropType = DropType.valueOf(section.getString("drop-type", section.contains("loot-table") ? "CUSTOM" : "ALL").toUpperCase(java.util.Locale.ROOT));
 
         ConfigurationSection itemsSection = section.getConfigurationSection("loot-table");
         List<CataMineItem> itemList = new ArrayList<>();
@@ -113,7 +113,7 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
     }
 
     public void setChance(double chance) {
-        if (chance < 0 || chance > 100) {
+        if (!Double.isFinite(chance) || chance < 0 || chance > 100) {
             throw new IllegalArgumentException("Invalid chance");
         }
         this.chance = Math.round(chance * 100) / 100d;
@@ -132,7 +132,23 @@ public class CataMineBlock implements Choice, SectionSerializable, RewardHolder 
     }
 
     public void setItems(List<CataMineItem> items) {
-        this.items = items;
+        this.items = new ArrayList<>(items);
+    }
+
+    public boolean matches(org.bukkit.block.Block block) {
+        return baseBlock.toImmutableState().equals(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(block.getBlockData()));
+    }
+
+    public boolean hasCustomDrops() { return !items.isEmpty() || dropType == DropType.CUSTOM; }
+
+    @Override
+    public CataMineBlock clone() {
+        try {
+            CataMineBlock clone = (CataMineBlock) super.clone();
+            clone.items = new ArrayList<>(items.stream().map(CataMineItem::clone).toList());
+            clone.rewards = new ArrayList<>(rewards);
+            return clone;
+        } catch (CloneNotSupportedException e) { throw new AssertionError(e); }
     }
 
     @Override

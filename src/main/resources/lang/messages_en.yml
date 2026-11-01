@@ -1,4 +1,35 @@
 catamines:
+  error: "%p &cThe operation failed. Check the server log."
+  runtime:
+    warning: "%p &b%mine% &7resets in &a%seconds% %time%&7."
+    reset: "%p &b%mine% &7has been &areset&7."
+    hotbar: "&a%formattedseconds% &7| &e%remainingblocksper%%"
+  gui:
+    mines: "&bMines"
+    previous: "&6Previous page"
+    next: "&6Next page"
+    close: "&cClose"
+    back: "&6Back"
+    reset: "&cRegenerate mine"
+    start: "&aStart mine"
+    stop: "&cStop mine"
+    mode: "&6Reset mode: &f{0}"
+    cycle: "&7Click to switch modes"
+    delay: "&6Delay: &f{0} seconds"
+    percentage: "&6Reset at: &f{0}% remaining"
+    adjust: "&7Left click: increase | Right click: decrease"
+    region: "&bRegion: &f{0}"
+    composition: "&bComposition: &f{0}"
+    chance: "&6Chance: &f{0}%"
+    edit-drops: "&7Click to edit this block and its drops"
+    add-block: "&aAdd the block in your main hand (100% weight)"
+    copy-hand: "&7Copies the held item; keeps name, lore and metadata"
+    drop: "&bCustom drop"
+    fortune: "&6Fortune: &f{0}"
+    drop-controls: "&7Left: +5% (cycles) | Right: fortune | Shift: remove"
+    drop-mode: "&6Drop mode: &f{0}"
+    add-drop: "&aAdd the item in your main hand as a drop"
+    remove-block: "&cRemove this block from the composition"
   universal:
     mine:
       save-exception: "%p &cCould not save mine {0}!"
@@ -57,6 +88,9 @@ catamines:
     mine:
       create:
         mine-exists: "%p &cMine already exists!"
+        invalid-schematic: "%p &cCould not load schematic {0}."
+        region-exists: "%p &cRegion {0} already exists."
+        region-success: "%p &aCreated region {0} in mine {1}."
         incomplete-region: "%p &cYou must select a region!"
         invalid-name: "%p &cInvalid mine name!"
         success: "%p &7Mine &b{0} &7has been created."
@@ -68,6 +102,8 @@ catamines:
         usage: "/cm debug <mine>"
 
       delete:
+        region-not-exists: "%p &cRegion does not exist."
+        region-success: "%p &aDeleted region {0}."
         io-exception: "%p &cCould not delete mine file!"
         success: "%p &7Mine &b{0} &7has been deleted."
         description: "Deletes a mine."
@@ -97,7 +133,7 @@ catamines:
         usage: "/cm rename <mine> <new-name>"
 
       reset:
-        success: "%p &7Mine &b{0} &7has been reset."
+        success: "%p &7Reset requested for mine &b{0}&7; check the server log for errors."
         description: "Resets a mine."
         usage: "/cm reset <mine>"
       
@@ -107,6 +143,7 @@ catamines:
         usage: "/cm resetmode <mine> <mode>"
       
       resetpercentage:
+        success: "%p &aReset percentage set to {0}% for {1}."
         invalid: "%p &cInvalid reset percentage!"
         description: "Sets the reset percentage of a mine."
         usage: "/cm resetpercentage <mine> <percentage>"
@@ -166,6 +203,16 @@ catamines:
         success: "%p &7Set reset delay."
         description: "Sets the reset delay of a mine."
         usage: "/cm timer <mine> <delay>"
+
+      composition:
+        create:
+          composition-exists: "%p &cComposition {0} already exists."
+          success: "%p &aCreated composition {0} in {1}:{2}."
+
+      teleportplayers:
+        success: "%p &aUpdated reset teleport settings."
+        description: "Configures teleporting players on reset."
+        usage: "/cm teleportplayers <mine> <true|false>"
       
       unset:
         success: "%p &7Unset {0} of {1}."
@@ -178,6 +225,10 @@ catamines:
         usage: "/cm warn <mine> <...>"
 
       regions:
+        reset:
+          success: "%p &aRegion reset requested."
+          description: "Regenerates a region."
+          usage: "/cm reset <mine:region>"
         create:
           region-exists: "%p &cRegion already exists!"
           success: "%p &7Region created."

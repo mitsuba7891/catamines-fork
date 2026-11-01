@@ -51,7 +51,7 @@ public class SetCommand extends AbstractMineCommand {
                 return;
             }
 
-            if (chance < 0 || chance > 100) {
+            if (!Double.isFinite(chance) || chance < 0 || chance > 100) {
                 Message.SET_INVALID_CHANCE.send(sender);
                 return;
             }

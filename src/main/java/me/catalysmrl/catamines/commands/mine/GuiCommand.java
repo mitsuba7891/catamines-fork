@@ -12,13 +12,20 @@ import org.bukkit.command.CommandSender;
 public class GuiCommand extends AbstractCommand {
 
     public GuiCommand() {
-        super("gui", "catamines.gui", Predicates.any(), true);
+        super("gui", "catamines.gui", Predicates.inRange(0, 1), true);
     }
 
     @Override
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx) throws CommandException {
-        Messages.sendPrefixed(sender, "&cGUI is currently disabled in this version.");
-        // TODO: Port menu system from legacy
+        assertArgLength(ctx);
+        var player = (org.bukkit.entity.Player) sender;
+        if (!ctx.hasNext()) {
+            new me.catalysmrl.catamines.gui.generic.MineListGui(plugin, player, 0).open();
+            return;
+        }
+        var mine = plugin.getMineManager().getMine(ctx.next());
+        if (mine.isEmpty()) { Message.MINE_NOT_EXISTS.send(sender); return; }
+        new me.catalysmrl.catamines.gui.generic.MineEditorGui(plugin, player, mine.get()).open();
     }
 
     @Override

@@ -15,7 +15,7 @@ import java.util.List;
 public class UndoCommand extends AbstractCommand {
 
     public UndoCommand() {
-        super("undo", "catamines.command.undo", Predicates.any(), false);
+        super("undo", "catamines.undo", Predicates.any(), false);
     }
 
     @Override

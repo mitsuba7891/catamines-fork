@@ -18,7 +18,7 @@ public class StopTasksCommand extends AbstractCommand {
     @Override
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx) throws CommandException {
         plugin.getMineManager().shutDown();
-        Messages.sendPrefixed(sender, "&cMine tasks stopped.");
+        Message.STOPTASKS_SUCCESS.send(sender);
     }
 
     @Override

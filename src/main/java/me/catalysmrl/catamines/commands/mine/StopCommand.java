@@ -24,13 +24,14 @@ public class StopCommand extends AbstractMineCommand {
             throws CommandException {
         PropertyHolder holder = (PropertyHolder) target.getTarget();
         holder.setFlag(Flag.STOPPED, true);
+        plugin.getMineManager().cancelReset(target.getMine());
 
         String targetName = target.getMine().getName();
         if (holder instanceof Identifiable) {
             targetName = ((Identifiable) holder).getName();
         }
 
-        Messages.sendPrefixed(sender, "&aStopped: " + targetName);
+        Message.STOP_SUCCESS.send(sender, targetName);
         requireSave();
     }
 

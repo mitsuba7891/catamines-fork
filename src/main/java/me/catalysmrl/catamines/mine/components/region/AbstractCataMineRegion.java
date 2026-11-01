@@ -14,7 +14,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractCataMineRegion implements CataMineRegion {
+public abstract class AbstractCataMineRegion implements CataMineRegion, Cloneable {
 
     protected CataMine mine;
 
@@ -27,7 +27,7 @@ public abstract class AbstractCataMineRegion implements CataMineRegion {
 
     public AbstractCataMineRegion(String name) {
         this.name = name;
-        this.compositionManager = new ChoiceManager<>();
+        this.compositionManager = new ChoiceManager<>(composition -> composition.setRegion(this));
     }
 
     @Override
@@ -35,6 +35,7 @@ public abstract class AbstractCataMineRegion implements CataMineRegion {
         section.set("region-type", getType().toString());
         section.set("name", name);
         section.set("chance", chance);
+        section.set("current-composition", compositionManager.getCurrent().map(CataMineComposition::getName).orElse(null));
         flags.serialize(section.createSection("flags"));
         if (!rewards.isEmpty()) {
             ConfigurationSection rewardsSection = section.createSection("rewards");
@@ -77,6 +78,7 @@ public abstract class AbstractCataMineRegion implements CataMineRegion {
     }
 
     public void setChance(double chance) {
+        if (!Double.isFinite(chance) || chance < 0) throw new IllegalArgumentException("Invalid region weight");
         this.chance = chance;
     }
 
@@ -92,6 +94,31 @@ public abstract class AbstractCataMineRegion implements CataMineRegion {
 
     public void setMine(CataMine mine) {
         this.mine = mine;
+    }
+
+    protected void cancelPendingReset() {
+        if (mine != null && mine.getPlugin() != null && mine.getPlugin().getMineManager() != null) {
+            mine.getPlugin().getMineManager().cancelReset(mine);
+        }
+    }
+
+    @Override
+    public void fill() {
+        if (mine == null) throw new IllegalStateException("Region has no owning mine");
+        mine.getPlugin().getMineManager().resetRegion(this);
+    }
+
+    protected void deserializeCommon(ConfigurationSection section) throws DeserializationException {
+        flags = MineFlags.deserialize(section.getConfigurationSection("flags"));
+        ConfigurationSection rewardSection = section.getConfigurationSection("rewards");
+        if (rewardSection != null) {
+            for (String id : rewardSection.getKeys(false)) {
+                addReward(Reward.deserialize(id, rewardSection.getConfigurationSection(id)));
+            }
+        }
+        ConfigurationSection compositions = section.getConfigurationSection("compositions");
+        if (compositions != null) deserializeCompositions(compositions).forEach(compositionManager::add);
+        compositionManager.get(section.getString("current-composition", "")).ifPresent(compositionManager::setCurrent);
     }
 
     @Override
@@ -132,9 +159,12 @@ public abstract class AbstractCataMineRegion implements CataMineRegion {
             AbstractCataMineRegion clone = (AbstractCataMineRegion) super.clone();
             clone.flags = this.flags.clone();
             clone.rewards = new ArrayList<>(this.rewards);
-            clone.compositionManager = new ChoiceManager<>();
+            clone.compositionManager = new ChoiceManager<>(composition -> composition.setRegion(clone));
             for (CataMineComposition comp : this.compositionManager.getChoices()) {
-                clone.compositionManager.add(comp.clone());
+                CataMineComposition copy = comp.clone();
+                clone.compositionManager.add(copy);
+                if (compositionManager.getCurrent().orElse(null) == comp) clone.compositionManager.setCurrent(copy);
+                if (compositionManager.getUpcoming().orElse(null) == comp) clone.compositionManager.setUpcoming(copy);
             }
             return clone;
         } catch (CloneNotSupportedException e) {

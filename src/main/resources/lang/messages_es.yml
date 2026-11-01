@@ -1,0 +1,197 @@
+catamines:
+  error: "%p &cLa operación ha fallado. Consulta el registro del servidor."
+  runtime:
+    warning: "%p &b%mine% &7se regenera en &a%seconds% %time%&7."
+    reset: "%p &b%mine% &7se ha &aregenerado&7."
+    hotbar: "&a%formattedseconds% &7| &e%remainingblocksper%%"
+  gui:
+    mines: "&bMinas"
+    previous: "&6Página anterior"
+    next: "&6Página siguiente"
+    close: "&cCerrar"
+    back: "&6Volver"
+    reset: "&cRegenerar mina"
+    start: "&aIniciar mina"
+    stop: "&cDetener mina"
+    mode: "&6Modo de regeneración: &f{0}"
+    cycle: "&7Haz clic para cambiar de modo"
+    delay: "&6Intervalo: &f{0} segundos"
+    percentage: "&6Regenerar con: &f{0}% restante"
+    adjust: "&7Clic izquierdo: aumentar | Derecho: disminuir"
+    region: "&bRegión: &f{0}"
+    composition: "&bComposición: &f{0}"
+    chance: "&6Probabilidad: &f{0}%"
+    edit-drops: "&7Haz clic para editar el bloque y sus drops"
+    add-block: "&aAñadir bloque de la mano principal (peso 100%)"
+    copy-hand: "&7Copia el objeto; conserva nombre, descripción y metadatos"
+    drop: "&bDrop personalizado"
+    fortune: "&6Fortuna: &f{0}"
+    drop-controls: "&7Izquierdo: +5% (cíclico) | Derecho: fortuna | Mayús: eliminar"
+    drop-mode: "&6Modo de drops: &f{0}"
+    add-drop: "&aAñadir el objeto de la mano principal como drop"
+    remove-block: "&cEliminar bloque de la composición"
+  universal:
+    mine:
+      save-exception: "%p &cNo se pudo guardar la mina {0}."
+      delete-exception: "%p &cNo se pudo eliminar la mina {0}."
+  commandsystem:
+    unknown-command: "%p &7Comando desconocido."
+    only-players: "%p &cSolo los jugadores pueden ejecutar este comando."
+    no-permission: "%p &cNo tienes permiso para hacer eso."
+    mine-not-exist: "%p &cLa mina no existe."
+    invalid-target: "%p &cEl destino &6{0} &cno es válido."
+    no-mines: "%p &cNo hay minas."
+    query-all:
+      header: ["", "&5Consultando todas las minas...", ""]
+      entry: "&7>> &f{0}"
+      footer: ["", "&5Aplicado a &a{0} &5destinos.", ""]
+  command:
+    generic:
+      help:
+        header: "&8&m----------------&r &6CataMines &7v{0} &8&m----------------"
+        description: "Muestra la ayuda."
+        usage: "/cm help"
+      list:
+        header: "&8&m----------------&r &6Minas &8&m----------------"
+        description: "Muestra las minas."
+        usage: "/cm list"
+      reload:
+        success: "%p &aConfiguración e idiomas recargados; las minas siguen en memoria."
+        description: "Recarga la configuración y los idiomas sin sobrescribir cambios."
+        usage: "/cm reload"
+      confirm:
+        header: "%p &c⚠ Esta acción afecta a &6{0} &cdestinos."
+        footer: "%p &6/cm confirm &7para continuar."
+        description: "Confirma una acción pendiente."
+        usage: "/cm confirm"
+      undo:
+        empty: "%p &7No hay cambios que deshacer."
+        success: "%p &aSe han restaurado &b{0} &aminas."
+        footer: "%p &7{0}"
+        description: "Deshace cambios de configuración."
+        usage: "/cm undo"
+      redo:
+        empty: "%p &7No hay cambios que rehacer."
+        success: "%p &aSe han rehecho cambios en &b{0} &aminas."
+        footer: "%p &7Rehacer: {0}"
+        description: "Rehace cambios de configuración."
+        usage: "/cm redo"
+    mine:
+      create:
+        mine-exists: "%p &cLa mina ya existe."
+        incomplete-region: "%p &cSelecciona una región completa y compatible."
+        invalid-schematic: "%p &cNo se pudo cargar el esquema {0}."
+        invalid-name: "%p &cNombre inválido: usa letras, números, guiones o guiones bajos (1–64)."
+        region-exists: "%p &cLa región {0} ya existe."
+        region-success: "%p &aRegión {0} creada en la mina {1}."
+        success: "%p &aMina &b{0} &acreada."
+        description: "Crea una mina, región o composición."
+        usage: "/cm create <mina[:región[:composición]]> [esquema]"
+      composition:
+        create:
+          composition-exists: "%p &cLa composición {0} ya existe."
+          success: "%p &aComposición {0} creada en {1}:{2}."
+      debug:
+        description: "Muestra información de diagnóstico de una mina."
+        usage: "/cm debug <mina>"
+      delete:
+        region-not-exists: "%p &cLa región no existe."
+        region-success: "%p &aRegión {0} eliminada."
+        io-exception: "%p &cNo se pudo eliminar el archivo de la mina."
+        success: "%p &aMina &b{0} &aeliminada."
+        description: "Elimina una mina, región o composición."
+        usage: "/cm delete <mina[:región[:composición]]>"
+      displayname:
+        success: "%p &aNombre visible de {0} cambiado a {1}."
+        description: "Cambia el nombre visible de una mina."
+        usage: "/cm displayname <mina> <nombre>"
+      gui:
+        description: "Abre el panel de minas."
+        usage: "/cm gui [mina]"
+      info:
+        description: "Muestra información de una mina."
+        usage: "/cm info <mina>"
+      redefine:
+        success: "%p &aRegión {0} redefinida."
+        description: "Redefine la región seleccionada."
+        usage: "/cm redefine <mina:región>"
+      rename:
+        success: "%p &aMina {0} renombrada a {1}."
+        description: "Cambia el identificador de una mina."
+        usage: "/cm rename <mina> <nombre-nuevo>"
+      reset:
+        success: "%p &7Regeneración solicitada para &b{0}&7; consulta el registro si falla."
+        description: "Regenera una mina."
+        usage: "/cm reset <mina[:región]>"
+      resetmode:
+        invalid: "%p &cModo inválido: TIME, PERCENTAGE o TIME_PERCENTAGE."
+        description: "Configura el modo de regeneración."
+        usage: "/cm resetmode <mina> <TIME|PERCENTAGE|TIME_PERCENTAGE>"
+      resetpercentage:
+        invalid: "%p &cEl porcentaje debe estar entre 0 y 100."
+        success: "%p &aPorcentaje de regeneración de {1} cambiado a {0}%."
+        description: "Configura el porcentaje restante que activa la regeneración."
+        usage: "/cm resetpercentage <mina> <porcentaje>"
+      set:
+        invalid-blockstate: "%p &cBloque o estado de bloque inválido."
+        invalid-number: "%p &cLa probabilidad debe ser un número."
+        invalid-chance: "%p &cLa probabilidad debe estar entre 0 y 100%."
+        invalid-region: "%p &cRegión inválida."
+        invalid-composition: "%p &cComposición inválida."
+        success: "%p &a{1} configurado con peso {2}% en {0}:{3}:{4}; restante: {5}%."
+        description: "Añade o modifica un bloque de la composición."
+        usage: "/cm set <mina[:región[:composición]]> <bloque> [peso]"
+      setresetteleport:
+        success: "%p &aPunto de teletransporte al regenerar configurado para {0}."
+        description: "Configura el punto de teletransporte al regenerar."
+        usage: "/cm setresetteleport <mina>"
+      setteleport:
+        success: "%p &aPunto de teletransporte configurado para {0}."
+        description: "Configura el punto de teletransporte."
+        usage: "/cm setteleport <mina>"
+      start:
+        success: "%p &aMina {0} iniciada."
+        description: "Inicia la regeneración automática."
+        usage: "/cm start <mina>"
+      starttasks:
+        success: "%p &aTareas de minas iniciadas."
+        description: "Inicia las tareas de todas las minas."
+        usage: "/cm starttasks"
+      stop:
+        success: "%p &cMina {0} detenida."
+        description: "Detiene la regeneración automática."
+        usage: "/cm stop <mina>"
+      stoptasks:
+        success: "%p &cTareas de minas detenidas."
+        description: "Detiene las tareas de todas las minas."
+        usage: "/cm stoptasks"
+      sync:
+        success: "%p &aMinas guardadas."
+        description: "Guarda todas las minas."
+        usage: "/cm sync"
+      teleport:
+        success: "%p &aTeletransportado a la mina {0}."
+        description: "Teletransporta a una mina."
+        usage: "/cm teleport <mina> [jugador]"
+      teleportplayers:
+        success: "%p &aTeletransporte al regenerar configurado."
+        description: "Configura el teletransporte de jugadores al regenerar."
+        usage: "/cm teleportplayers <mina> <true|false>"
+      timer:
+        invalid-format: "%p &cTiempo inválido; usa un número positivo y s, m, h o d."
+        success: "%p &aIntervalo de regeneración configurado."
+        description: "Configura el intervalo de regeneración."
+        usage: "/cm timer <mina> <tiempo> [s|m|h|d]"
+      unset:
+        success: "%p &a{0} eliminado de {1}."
+        description: "Elimina un bloque de la composición."
+        usage: "/cm unset <mina[:región[:composición]]> <bloque>"
+      warn:
+        success: "%p &aAvisos configurados."
+        description: "Configura los avisos de regeneración."
+        usage: "/cm warn <mina> <opción> <valor>"
+      regions:
+        reset:
+          success: "%p &aRegeneración de región solicitada."
+          description: "Regenera una región."
+          usage: "/cm reset <mina:región>"

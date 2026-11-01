@@ -69,12 +69,12 @@ public final class CataMines extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        INSTANCE = null;
         commandManager = null;
 
         // Properly disable MineManager
-        mineManager.shutDown();
+        if (mineManager != null) mineManager.shutDown();
         mineManager = null;
+        INSTANCE = null;
     }
 
     private void setupMetrics() {
@@ -104,6 +104,7 @@ public final class CataMines extends JavaPlugin {
         getLogger().info("Registering listeners");
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new BlockListeners(mineManager), this);
+        pm.registerEvents(new me.catalysmrl.catamines.gui.GuiListener(), this);
         pm.registerEvents(new me.catalysmrl.catamines.mine.rewards.listeners.RewardListener(this), this);
     }
 

@@ -13,7 +13,7 @@ import org.bukkit.command.CommandSender;
 
 public class ResetCommand extends AbstractMineCommand {
     public ResetCommand() {
-        super("reset", "catamines.command.reset", Predicates.inRange(0, 1), false);
+        super("reset", "catamines.reset", Predicates.inRange(0, 1), false);
     }
 
     @Override

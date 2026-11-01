@@ -15,13 +15,23 @@ public class BlockListeners implements Listener {
         this.mineManager = mineManager;
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         mineManager.callBlockBreak(event);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void afterBlockBreak(BlockBreakEvent event) {
+        mineManager.finishBlockBreak(event);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         mineManager.callBlockPlace(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void guardResetPlacement(BlockPlaceEvent event) {
+        if (mineManager.isResettingAt(event.getBlock().getLocation())) event.setCancelled(true);
     }
 }

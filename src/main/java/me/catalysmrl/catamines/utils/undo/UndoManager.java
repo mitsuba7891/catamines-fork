@@ -125,6 +125,7 @@ public final class UndoManager {
                 }
             } else {
                 // RESTORE MINE
+                mineList.stream().filter(m -> m.getName().equals(name)).forEach(plugin.getMineManager()::cancelReset);
                 mineList.removeIf(m -> m.getName().equals(name));
                 mineList.add(oldMine);
 

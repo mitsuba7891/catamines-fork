@@ -18,7 +18,9 @@ public class ReloadCommand extends AbstractCommand {
     @Override
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx) throws CommandException {
         assertArgLength(ctx);
-        Messages.sendPrefixed(sender, "&cNot supported yet!");
+        plugin.reloadConfig();
+        new me.catalysmrl.catamines.utils.message.LocaleBootstrap(plugin).init();
+        Message.RELOAD_SUCCESS.send(sender);
     }
 
     @Override

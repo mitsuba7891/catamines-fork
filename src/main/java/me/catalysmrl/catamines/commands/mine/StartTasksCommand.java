@@ -18,7 +18,7 @@ public class StartTasksCommand extends AbstractCommand {
     @Override
     public void execute(CataMines plugin, CommandSender sender, CommandContext ctx) throws CommandException {
         plugin.getMineManager().start();
-        Messages.sendPrefixed(sender, "&aMine tasks started.");
+        Message.STARTTASKS_SUCCESS.send(sender);
     }
 
     @Override
